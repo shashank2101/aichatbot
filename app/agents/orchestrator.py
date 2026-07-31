@@ -11,14 +11,16 @@ import datetime
 
 from app.agents.graph import GRAPH
 from app import cache
-from app.db_utils import log_event
+from app.db_utils import get_chat_history, log_event, save_chat_message
 from app.config import MAX_SATISFACTION_RETRIES
 
 
-def handle_question(question: str, user: dict) -> dict:
+def handle_question(question: str, user: dict, session_id: str) -> dict:
     """user = {"username", "role", "region"}"""
     t0 = time.time()
     role, region, username = user["role"], user.get("region"), user["username"]
+    history = get_chat_history(session_id, username)
+    save_chat_message(session_id, username, "user", question)
 
     initial_state = {
         "question": question,
@@ -30,6 +32,7 @@ def handle_question(question: str, user: dict) -> dict:
         "cache_hit": False,
         "rows": [],
         "sql": None,
+        "chat_history": history,
     }
     state = GRAPH.invoke(initial_state)
 
@@ -44,23 +47,23 @@ def handle_question(question: str, user: dict) -> dict:
 
     if exit_reason == "jailbreak":
         _log(username, question, intent, None, False, True, t0, 0, None, 0)
-        return _resp(answer, intent, blocked=True)
+        return _save_assistant_response(session_id, username, _resp(answer, intent, blocked=True))
 
     if exit_reason == "off_topic":
         _log(username, question, intent, None, False, False, t0, 0, None, 0)
-        return _resp(answer, intent, blocked=True)
+        return _save_assistant_response(session_id, username, _resp(answer, intent, blocked=True))
 
     if exit_reason == "greeting":
         _log(username, question, intent, None, False, False, t0, 0, None, 0)
-        return _resp(answer, intent)
+        return _save_assistant_response(session_id, username, _resp(answer, intent))
 
     if exit_reason == "no_sql":
         _log(username, question, intent, None, cache_hit, False, t0, total_tokens, None, 0, satisfied=0)
-        return _resp(answer, intent, cache_hit=cache_hit)
+        return _save_assistant_response(session_id, username, _resp(answer, intent, cache_hit=cache_hit))
 
     if exit_reason == "denied":
         _log(username, question, intent, sql, cache_hit, False, t0, total_tokens, None, 0, satisfied=0)
-        return _resp(answer, intent, sql=sql, blocked=True)
+        return _save_assistant_response(session_id, username, _resp(answer, intent, sql=sql, blocked=True))
 
     # exit_reason in ("error", "completed") -- both log + cache the same way,
     # matching the original orchestrator's fall-through behavior.
@@ -70,7 +73,11 @@ def handle_question(question: str, user: dict) -> dict:
     log_id = _log(username, question, intent, sql, cache_hit, False, t0, total_tokens, None, retries,
                    satisfied=1 if retries < MAX_SATISFACTION_RETRIES else 0)
 
-    return _resp(answer, intent, sql=sql, rows=rows[:50], cache_hit=cache_hit, retries=retries, log_id=log_id)
+    return _save_assistant_response(
+        session_id,
+        username,
+        _resp(answer, intent, sql=sql, rows=rows[:50], cache_hit=cache_hit, retries=retries, log_id=log_id),
+    )
 
 
 def _resp(answer, intent, sql=None, rows=None, cache_hit=False, retries=0, log_id=None, blocked=False):
@@ -78,6 +85,11 @@ def _resp(answer, intent, sql=None, rows=None, cache_hit=False, retries=0, log_i
         "answer": answer, "intent": intent, "sql": sql, "rows": rows,
         "cache_hit": cache_hit, "retries": retries, "log_id": log_id, "blocked": blocked,
     }
+
+
+def _save_assistant_response(session_id: str, username: str, response: dict) -> dict:
+    save_chat_message(session_id, username, "assistant", response["answer"])
+    return response
 
 
 def _log(username, question, intent, sql, cache_hit, jailbreak, t0, tokens, thumbs, retries, satisfied=None):

@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from typing import Optional, Any
 
 
@@ -18,6 +18,7 @@ class LoginResponse(BaseModel):
 class ChatRequest(BaseModel):
     question: str
     token: str
+    session_id: str = Field(min_length=1, max_length=128)
 
 
 class ChatResponse(BaseModel):

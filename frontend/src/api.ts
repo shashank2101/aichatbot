@@ -33,12 +33,39 @@ export async function login(username: string, password: string): Promise<User> {
   })
 }
 
-export async function sendChat(question: string, token: string): Promise<ChatResponse> {
+export async function sendChat(question: string, token: string, sessionId: string): Promise<ChatResponse> {
   return request<ChatResponse>('/chat', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ question, token }),
+    body: JSON.stringify({ question, token, session_id: sessionId }),
   })
+}
+
+export interface StoredChatMessage {
+  role: 'user' | 'assistant'
+  content: string
+  created_at: string
+}
+
+export interface ChatSession {
+  session_id: string
+  preview: string
+  updated_at: string
+}
+
+export async function getChatHistory(sessionId: string, token: string): Promise<StoredChatMessage[]> {
+  const params = new URLSearchParams({ session_id: sessionId })
+  const response = await request<{ messages: StoredChatMessage[] }>(`/chat/history?${params}`, {
+    headers: authHeaders(token),
+  })
+  return response.messages
+}
+
+export async function getChatSessions(token: string): Promise<ChatSession[]> {
+  const response = await request<{ sessions: ChatSession[] }>('/chat/sessions', {
+    headers: authHeaders(token),
+  })
+  return response.sessions
 }
 
 export async function sendFeedback(logId: number, thumbs: 'up' | 'down', token: string) {

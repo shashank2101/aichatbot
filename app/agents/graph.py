@@ -43,6 +43,7 @@ class GraphState(TypedDict, total=False):
     role: str
     region: Optional[str]
     username: str
+    chat_history: list[dict[str, str]]
 
     intent: str
     sql: Optional[str]
@@ -134,7 +135,9 @@ def mask_node(state: GraphState) -> dict:
 
 def answer_node(state: GraphState) -> dict:
     """AGENT NODE — calls out to the LLM (or offline stub) via answer_agent."""
-    answer, tok = answer_agent.generate_answer(state["question"], state["masked_rows"])
+    answer, tok = answer_agent.generate_answer(
+        state["question"], state["masked_rows"], state.get("chat_history", [])
+    )
     return {"answer": answer, "total_tokens": state.get("total_tokens", 0) + tok}
 
 

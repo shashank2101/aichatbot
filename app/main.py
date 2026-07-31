@@ -12,7 +12,7 @@ from app.agents import orchestrator, audit_report_agent
 from app import metrics as metrics_mod
 from app import observability
 from app import preprocessing
-from app.db_utils import get_connection
+from app.db_utils import get_chat_history, get_chat_sessions, get_connection
 from app.rbac import allowed_regions
 from app.config import REGION_TO_STORE
 
@@ -77,7 +77,7 @@ def chat(req: ChatRequest):
 
     try:
         print("Calling orchestrator...")
-        result = orchestrator.handle_question(req.question, user)
+        result = orchestrator.handle_question(req.question, user, req.session_id)
         print("Orchestrator result:", result)
 
         return ChatResponse(**result)
@@ -85,6 +85,18 @@ def chat(req: ChatRequest):
     except Exception:
         traceback.print_exc()
         raise
+
+
+@app.get("/chat/history")
+def chat_history(session_id: str, authorization: Optional[str] = Header(None)):
+    user = _current_user(authorization)
+    return {"messages": get_chat_history(session_id, user["username"])}
+
+
+@app.get("/chat/sessions")
+def chat_sessions(authorization: Optional[str] = Header(None)):
+    user = _current_user(authorization)
+    return {"sessions": get_chat_sessions(user["username"])}
 
 @app.post("/chat/feedback")
 def chat_feedback(req: FeedbackRequest, authorization: Optional[str] = Header(None)):

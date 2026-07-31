@@ -1,4 +1,4 @@
-import { NavLink, Outlet, useNavigate } from 'react-router-dom'
+import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom'
 import {
   MessageSquare,
   LayoutDashboard,
@@ -10,10 +10,13 @@ import {
   ChevronLeft,
   ChevronRight,
   UploadCloud,
+  Plus,
 } from 'lucide-react'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useAuth } from '../context/AuthContext'
 import { RoleBadge } from './RoleBadge'
+import { getChatSessions } from '../api'
+import type { ChatSession } from '../api'
 
 // `roles` omitted = visible to every logged-in role. Present = only those roles see it.
 const NAV: { to: string; label: string; icon: typeof MessageSquare; roles?: string[] }[] = [
@@ -28,7 +31,21 @@ const NAV: { to: string; label: string; icon: typeof MessageSquare; roles?: stri
 export function AppShell() {
   const { user, logout } = useAuth()
   const navigate = useNavigate()
+  const location = useLocation()
   const [collapsed, setCollapsed] = useState(false)
+  const [chatSessions, setChatSessions] = useState<ChatSession[]>([])
+  const showChatHistory = location.pathname === '/app/chat'
+
+  useEffect(() => {
+    if (!user || !showChatHistory) return
+
+    const loadSessions = () => {
+      getChatSessions(user.token).then(setChatSessions).catch(() => setChatSessions([]))
+    }
+    loadSessions()
+    window.addEventListener('chat-sessions-updated', loadSessions)
+    return () => window.removeEventListener('chat-sessions-updated', loadSessions)
+  }, [showChatHistory, user])
 
   function handleLogout() {
     logout()
@@ -72,6 +89,34 @@ export function AppShell() {
             </NavLink>
           ))}
         </nav>
+
+        {showChatHistory && !collapsed && (
+          <section className="border-t border-slate-100 p-2">
+            <button
+              onClick={() => navigate('/app/chat?new=1')}
+              className="mb-2 flex w-full items-center gap-2 rounded-lg px-2 py-2 text-sm font-medium text-slate-600 transition hover:bg-slate-50 hover:text-slate-900"
+            >
+              <Plus className="h-4 w-4" />
+              New chat
+            </button>
+            <p className="px-2 pb-2 text-xs font-semibold uppercase tracking-wide text-slate-400">Chat history</p>
+            <div className="max-h-52 space-y-1 overflow-y-auto">
+              {chatSessions.length === 0 ? (
+                <p className="px-2 py-1 text-xs text-slate-400">No saved chats yet.</p>
+              ) : chatSessions.map((session) => (
+                <button
+                  key={session.session_id}
+                  onClick={() => navigate(`/app/chat?session_id=${encodeURIComponent(session.session_id)}`)}
+                  title={session.preview}
+                  className="flex w-full items-center gap-2 rounded-lg px-2 py-2 text-left text-sm text-slate-600 transition hover:bg-slate-50 hover:text-slate-900"
+                >
+                  <MessageSquare className="h-4 w-4 shrink-0" />
+                  <span className="truncate">{session.preview}</span>
+                </button>
+              ))}
+            </div>
+          </section>
+        )}
 
         <button
           onClick={() => setCollapsed(!collapsed)}

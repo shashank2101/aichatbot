@@ -97,6 +97,18 @@ CREATE TABLE obs_logs (
     retries INTEGER,
     created_at TEXT
 );
+
+CREATE TABLE chat_history (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    session_id TEXT NOT NULL,
+    username TEXT NOT NULL,
+    role TEXT NOT NULL CHECK (role IN ('user', 'assistant')),
+    content TEXT NOT NULL,
+    created_at TEXT NOT NULL
+);
+
+CREATE INDEX idx_chat_history_session_user_id
+ON chat_history (session_id, username, id);
 """
 
 # Secondary stores hold a regional slice: mirrored master data (warehouses,
