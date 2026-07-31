@@ -1,0 +1,3 @@
+warehouse_id,name,region,capacity_units
+2,Mumbai Hub,WEST,40000
+3,Pune Satellite,WEST,20000

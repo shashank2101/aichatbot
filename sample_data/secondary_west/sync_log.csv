@@ -1,0 +1,3 @@
+sync_id,source_db,target_db,record_type,record_id,synced_at,status
+1,primary,secondary_west,inventory,1,2026-07-31T08:01:39,SUCCESS
+2,primary,secondary_west,inventory,2,2026-07-31T08:01:39,SUCCESS

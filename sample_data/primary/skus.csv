@@ -1,0 +1,11 @@
+sku_id,sku_code,description,unit_price,unit_cost
+1,SKU-1001,Wireless Mouse,799.0,420.0
+2,SKU-1002,USB-C Cable 1m,299.0,110.0
+3,SKU-1003,27in Monitor,15999.0,11200.0
+4,SKU-1004,Mechanical Keyboard,3499.0,2100.0
+5,SKU-1005,Laptop Stand,1299.0,650.0
+6,SKU-1006,Webcam 1080p,2199.0,1300.0
+7,SKU-1007,External SSD 1TB,6999.0,5100.0
+8,SKU-1008,Office Chair,8999.0,6200.0
+9,SKU-1009,Whiteboard Marker Set,249.0,90.0
+10,SKU-1010,A4 Paper Ream,349.0,210.0

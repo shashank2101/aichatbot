@@ -1,0 +1,25 @@
+disc_id,warehouse_id,sku_id,disc_type,severity,expected_qty,actual_qty,detected_at
+1,1,1,Quantity Mismatch,High,100,85,2026-07-31
+2,1,2,Wrong Location,Medium,110,110,2026-07-29
+3,1,3,Damaged,Low,120,120,2026-07-27
+4,1,4,Expired,High,130,130,2026-07-25
+5,2,2,Wrong Location,Medium,100,100,2026-07-31
+6,2,3,Damaged,Low,110,110,2026-07-29
+7,2,4,Expired,High,120,120,2026-07-27
+8,2,5,High Variance,Medium,130,130,2026-07-25
+9,3,3,Damaged,Low,100,100,2026-07-31
+10,3,4,Expired,High,110,110,2026-07-29
+11,3,5,High Variance,Medium,120,120,2026-07-27
+12,3,6,Quantity Mismatch,Low,130,115,2026-07-25
+13,4,4,Expired,High,100,100,2026-07-31
+14,4,5,High Variance,Medium,110,110,2026-07-29
+15,4,6,Quantity Mismatch,Low,120,105,2026-07-27
+16,4,7,Wrong Location,High,130,130,2026-07-25
+17,5,5,High Variance,Medium,100,100,2026-07-31
+18,5,6,Quantity Mismatch,Low,110,95,2026-07-29
+19,5,7,Wrong Location,High,120,120,2026-07-27
+20,5,8,Damaged,Medium,130,130,2026-07-25
+21,6,6,Quantity Mismatch,Low,100,85,2026-07-31
+22,6,7,Wrong Location,High,110,110,2026-07-29
+23,6,8,Damaged,Medium,120,120,2026-07-27
+24,6,9,Expired,Low,130,130,2026-07-25
