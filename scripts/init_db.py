@@ -13,7 +13,7 @@ import hashlib
 import datetime
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from application.config import DB_PATHS  # noqa: E402
+from app.config import DB_PATHS  # noqa: E402
 
 PRIMARY_SCHEMA = """
 CREATE TABLE users (
